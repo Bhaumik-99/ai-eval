@@ -1,0 +1,10 @@
+{
+  "id": "db_constraint",
+  "name": "Add Email Uniqueness Constraint",
+  "category": "DATABASE",
+  "difficulty": "medium",
+  "description": "The users table in `app.py` allows duplicate email addresses because the schema has no UNIQUE constraint and `create_user` does not check for duplicates. Fix this by adding a UNIQUE constraint on the email column in the schema AND raising an appropriate exception when a duplicate email is attempted.",
+  "visible_hint": "create_user('Alice', 'alice@example.com') should succeed and return a positive integer ID",
+  "estimated_minutes": 10,
+  "tags": ["sqlite", "constraints", "uniqueness", "database"]
+}

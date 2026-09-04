@@ -1,0 +1,10 @@
+{
+  "id": "discount",
+  "name": "Fix Discount Calculator",
+  "category": "BUG_FIX",
+  "difficulty": "easy",
+  "description": "The `calculate_discount(price, percentage)` function in `app.py` does not validate its inputs. Fix it to raise a `ValueError` for invalid percentage values (negative or > 100) and for negative prices. The function must still return the correct discounted price for valid inputs.",
+  "visible_hint": "A 10% discount on $100 should return $90.0",
+  "estimated_minutes": 5,
+  "tags": ["validation", "edge-cases", "arithmetic"]
+}

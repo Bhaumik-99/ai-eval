@@ -1,0 +1,10 @@
+{
+  "id": "sql_injection",
+  "name": "Fix SQL Injection Vulnerability",
+  "category": "SECURITY",
+  "difficulty": "medium",
+  "description": "The `authenticate_user` function in `app.py` builds SQL queries using Python f-strings, making it trivially exploitable with payloads like `' OR 1=1 --`. Fix it to use parameterized queries. Additionally, the `get_user_by_id` function is missing an authorization check — only users with `role='admin'` should be allowed to access any user record.",
+  "visible_hint": "authenticate_user('alice', 'hashed_alice_pass_abc') should return alice's record",
+  "estimated_minutes": 15,
+  "tags": ["security", "sql-injection", "parameterized-queries", "authorization"]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "api_endpoint",
+  "name": "Add GET /users/{id} Endpoint",
+  "category": "API",
+  "difficulty": "medium",
+  "description": "The FastAPI application in `app.py` already has a `GET /users` endpoint but is missing `GET /users/{user_id}`. Add this endpoint. It must return the user object for a valid ID, return HTTP 404 when the user does not exist, and FastAPI should handle type validation (invalid non-integer IDs return 422).",
+  "visible_hint": "GET /users/1 should return Alice's user object with status 200",
+  "estimated_minutes": 10,
+  "tags": ["fastapi", "rest-api", "error-handling"]
+}

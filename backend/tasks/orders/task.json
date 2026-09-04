@@ -1,0 +1,10 @@
+{
+  "id": "orders",
+  "name": "Fix Order Total Calculation",
+  "category": "REGRESSION",
+  "difficulty": "hard",
+  "description": "The `calculate_order_total` function has a bug: when a discount code is applied, the `discount_pct` (e.g., 10 for 10%) is multiplied directly against the subtotal instead of being divided by 100 first. Fix the bug. IMPORTANT: orders without a discount code must continue to work exactly as before — this is a regression test.",
+  "visible_hint": "An order of 3 × $10 widgets with no discount and 0% tax should total $30.00",
+  "estimated_minutes": 10,
+  "tags": ["arithmetic", "regression", "discount", "tax"]
+}

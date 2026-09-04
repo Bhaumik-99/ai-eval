@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentEval — Did the AI Actually Complete the Task?</title>
+  <meta name="description" content="AgentEval evaluates AI coding agents using hidden tests, Docker sandboxes, and failure analysis — distinguishing agents that truly complete tasks from those that merely pass visible tests." />
+
+  <!-- Bauhaus font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════════════ -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="logo-shapes">
+        <div class="logo-circle"></div>
+        <div class="logo-square"></div>
+        <div class="logo-triangle"></div>
+      </div>
+      <span class="logo-text">AgentEval</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link active" id="nav-dashboard" onclick="navigate('dashboard')">Dashboard</a>
+      <a class="nav-link" id="nav-new" onclick="navigate('new')">New Eval</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN APP CONTAINER
+  ═══════════════════════════════════════════════ -->
+  <main id="app">
+
+    <!-- ─────────────────────────────────────────
+         VIEW: DASHBOARD
+    ───────────────────────────────────────── -->
+    <div id="view-dashboard" class="view active">
+
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-left">
+          <div>
+            <h1 class="hero-title">AGENT<br><span>EVAL</span></h1>
+            <p class="hero-subtitle">Evaluating whether AI agents actually complete real-world tasks using hidden tests &amp; failure analysis</p>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hero-stat-value" id="hs-evals">—</div>
+              <div class="hero-stat-label">Evaluations</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value" id="hs-success">—</div>
+              <div class="hero-stat-label">Success Rate</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-value" id="hs-avg">—</div>
+              <div class="hero-stat-label">Avg Score</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="geo-composition">
+            <div class="geo-shape geo-circle-lg"></div>
+            <div class="geo-shape geo-square-rot"></div>
+            <div class="geo-shape geo-square-sm"></div>
+            <div class="geo-shape geo-dot"></div>
+            <div class="geo-shape geo-dot-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Bar -->
+      <section class="stats-bar">
+        <div class="grid-4">
+          <div>
+            <div class="stat-value" id="stat-tasks">6</div>
+            <div class="stat-key">Tasks</div>
+          </div>
+          <div>
+            <div class="stat-value" id="stat-runs">—</div>
+            <div class="stat-key">Total Runs</div>
+          </div>
+          <div>
+            <div class="stat-value" id="stat-passed">—</div>
+            <div class="stat-key">Tasks Passed</div>
+          </div>
+          <div>
+            <div class="stat-value">3</div>
+            <div class="stat-key">Failure Types</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Evaluations list -->
+      <section>
+        <div class="section-header">
+          <h2>Evaluation Runs</h2>
+          <button class="btn btn-red" onclick="navigate('new')">+ New Evaluation</button>
+        </div>
+        <div id="eval-list-body" class="section-body">
+          <div class="loading-wrap" id="dash-loading">
+            <div class="loading-geo"></div>
+            <div class="loading-text">Loading evaluations…</div>
+          </div>
+          <div id="eval-list" class="eval-list" style="display:none;"></div>
+          <div id="eval-empty" style="display:none;">
+            <div class="empty-state">
+              <div class="empty-shapes">
+                <div class="empty-circle"></div>
+                <div class="empty-square"></div>
+                <div class="empty-tri"></div>
+              </div>
+              <div class="empty-title">No Evaluations Yet</div>
+              <div class="empty-sub">Run your first evaluation to see how the AI agent performs against hidden tests.</div>
+              <button class="btn btn-blue btn-lg" onclick="navigate('new')">Start First Evaluation</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Task Overview -->
+      <section style="border-top:4px solid #121212;">
+        <div class="section-header">
+          <h2>Available Tasks</h2>
+        </div>
+        <div class="section-body">
+          <div id="task-overview" class="task-grid"></div>
+        </div>
+      </section>
+
+    </div><!-- /view-dashboard -->
+
+
+    <!-- ─────────────────────────────────────────
+         VIEW: NEW EVALUATION
+    ───────────────────────────────────────── -->
+    <div id="view-new" class="view">
+
+      <div class="new-eval-hero">
+        <h1>New<br>Evaluation</h1>
+        <p>Select tasks and an agent model, then launch</p>
+      </div>
+
+      <div class="new-eval-body">
+
+        <div class="form-group">
+          <label for="model-select">Agent Model <span id="ollama-status-badge" style="font-size:10px;opacity:.6;margin-left:4px;"></span></label>
+          <select class="form-select" id="model-select">
+            <option value="__loading__" disabled>⏳ Loading models…</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Select Tasks <span id="task-count-label" style="font-size:10px; opacity:.5;">(6 selected)</span></label>
+          <div id="new-task-selector" class="task-selector"></div>
+        </div>
+
+        <button class="btn btn-red btn-lg" id="launch-btn" onclick="launchEvaluation()" style="margin-top:8px;">
+          ▶ Launch Evaluation
+        </button>
+
+      </div>
+    </div><!-- /view-new -->
+
+
+    <!-- ─────────────────────────────────────────
+         VIEW: LIVE EVALUATION
+    ───────────────────────────────────────── -->
+    <div id="view-live" class="view">
+      <div class="live-eval-hero">
+        <div>
+          <div class="live-eval-title" id="live-title">Running Evaluation</div>
+          <div class="live-eval-meta" id="live-meta"></div>
+        </div>
+        <div id="live-final-score" style="display:none; text-align:right;">
+          <div style="font-size:64px; font-weight:900; color:var(--yellow);" id="live-avg"></div>
+          <div style="font-size:11px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; opacity:.6;">Avg Score</div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="live-progress-bar">
+        <div class="live-progress-fill" id="live-progress" style="width:0%"></div>
+      </div>
+
+      <div class="live-body">
+        <!-- Left: task status list -->
+        <div class="live-tasks" id="live-task-list"></div>
+
+        <!-- Right: trace log -->
+        <div class="live-trace" style="background:var(--fg);">
+          <div class="trace-log" id="live-trace-log">
+            <div class="trace-header">
+              <div class="trace-dot" id="trace-dot"></div>
+              AGENT TRACE LOG
+            </div>
+            <div class="trace-entries" id="live-trace-entries"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:24px 40px; border-top:4px solid #121212; display:flex; gap:16px; flex-shrink:0;">
+        <button class="btn btn-outline" onclick="navigate('dashboard')">← Back to Dashboard</button>
+        <button class="btn btn-blue" id="view-results-btn" style="display:none;" onclick="viewCurrentResults()">View Full Results →</button>
+      </div>
+    </div><!-- /view-live -->
+
+
+    <!-- ─────────────────────────────────────────
+         VIEW: EVALUATION DETAIL
+    ───────────────────────────────────────── -->
+    <div id="view-detail" class="view">
+      <div id="detail-content">
+        <div class="loading-wrap">
+          <div class="loading-geo"></div>
+          <div class="loading-text">Loading results…</div>
+        </div>
+      </div>
+    </div><!-- /view-detail -->
+
+  </main><!-- /app -->
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

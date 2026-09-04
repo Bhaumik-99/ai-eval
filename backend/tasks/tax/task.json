@@ -1,0 +1,10 @@
+{
+  "id": "tax",
+  "name": "Fix Tax Calculator",
+  "category": "BUG_FIX",
+  "difficulty": "easy",
+  "description": "The `calculate_tax(income, tax_rate)` function has a critical arithmetic bug: `tax_rate` is a percentage (e.g., 25 for 25%) but the function treats it as a decimal multiplier, causing results that are 100× too large. Fix the calculation and also handle negative income by raising a `ValueError`.",
+  "visible_hint": "25% tax on $1000 income should be $250.00, not $25000.00",
+  "estimated_minutes": 5,
+  "tags": ["arithmetic", "validation", "percentage"]
+}

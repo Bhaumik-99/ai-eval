@@ -1,0 +1,10 @@
+{
+  "id": "cache_lru",
+  "name": "LRU Cache with Eviction",
+  "category": "ALGORITHMS",
+  "difficulty": "medium",
+  "description": "Implement a Least Recently Used (LRU) Cache in `app.py`. The `LRUCache(capacity)` must provide `get(key)` in O(1) time returning `None` if absent, and `put(key, value)` in O(1) time. When capacity is exceeded, evict the least recently used key. Updating an existing key or accessing a key via `get` marks it as most recently used. Raising `ValueError` if `capacity <= 0` is required.",
+  "visible_hint": "Accessing an item refreshes its recency so it is not evicted first.",
+  "estimated_minutes": 10,
+  "tags": ["algorithms", "caching", "data-structures", "lru"]
+}

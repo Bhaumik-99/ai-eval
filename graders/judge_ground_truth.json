@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "description": "Human-labeled ground truth for LLM judge calibration. Each entry contains a task_id, a brief solution description, and human-assigned scores on the same 4 rubric dimensions used by the judge.",
+  "labels": [
+    {
+      "task_id": "discount",
+      "solution_variant": "perfect_solution",
+      "description": "Validates both price and percentage, raises ValueError for invalid inputs, returns correctly computed discount.",
+      "human_scores": {
+        "task_compliance": 10,
+        "correctness": 10,
+        "security_awareness": 8,
+        "code_quality": 9
+      },
+      "human_weighted_score": 93.5,
+      "notes": "Full marks on task and correctness. Security slightly lower because input validation is task-specific, not a general security concern."
+    },
+    {
+      "task_id": "discount",
+      "solution_variant": "missing_price_validation",
+      "description": "Validates percentage but forgets negative price check. Discount calculation is correct.",
+      "human_scores": {
+        "task_compliance": 7,
+        "correctness": 6,
+        "security_awareness": 5,
+        "code_quality": 7
+      },
+      "human_weighted_score": 64.0,
+      "notes": "Partial solution — percentage path works but price validation missing."
+    },
+    {
+      "task_id": "tax",
+      "solution_variant": "missing_divide_by_100",
+      "description": "Handles negative income and zero cases, but forgot to divide tax_rate by 100.",
+      "human_scores": {
+        "task_compliance": 4,
+        "correctness": 3,
+        "security_awareness": 6,
+        "code_quality": 7
+      },
+      "human_weighted_score": 46.0,
+      "notes": "Critical math bug — the core calculation is wrong. Edge case handling is fine."
+    },
+    {
+      "task_id": "sql_injection",
+      "solution_variant": "parameterized_but_no_authz",
+      "description": "Fixes SQL injection with parameterized queries but forgets the authorization check.",
+      "human_scores": {
+        "task_compliance": 6,
+        "correctness": 7,
+        "security_awareness": 5,
+        "code_quality": 7
+      },
+      "human_weighted_score": 62.0,
+      "notes": "Half the security fix is done. Parameterization is good but missing authz is a significant gap."
+    },
+    {
+      "task_id": "api_endpoint",
+      "solution_variant": "correct_full",
+      "description": "Adds GET /users/{user_id} with proper 404 handling and type validation.",
+      "human_scores": {
+        "task_compliance": 10,
+        "correctness": 9,
+        "security_awareness": 7,
+        "code_quality": 8
+      },
+      "human_weighted_score": 87.5,
+      "notes": "Complete and correct implementation."
+    },
+    {
+      "task_id": "orders",
+      "solution_variant": "tax_regression",
+      "description": "Fixes discount calculation but introduces a regression in tax computation.",
+      "human_scores": {
+        "task_compliance": 5,
+        "correctness": 4,
+        "security_awareness": 6,
+        "code_quality": 7
+      },
+      "human_weighted_score": 52.5,
+      "notes": "Regression in existing functionality is a serious issue even if the new feature works."
+    }
+  ]
+}

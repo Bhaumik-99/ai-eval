@@ -92,3 +92,10 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Sandbox build artifacts
+sandbox/build_context/
+sandbox/*.tmp
+
+# Judge calibration outputs
+graders/judge_calibration_results/

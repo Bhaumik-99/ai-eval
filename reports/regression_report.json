@@ -1,0 +1,164 @@
+{
+  "evaluation_timestamp": "2026-10-15T18:19:37.344528",
+  "passed": true,
+  "threshold": 5.0,
+  "overall_score_delta": 0.0,
+  "baseline_avg": 95.5,
+  "current_avg": 95.5,
+  "regressed_tasks_count": 0,
+  "regressed_tasks": [],
+  "task_comparisons": {
+    "discount": {
+      "baseline_score": 93.3,
+      "current_score": 93.3,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": "INCORRECT_IMPLEMENTATION",
+      "current_category": "INCORRECT_IMPLEMENTATION",
+      "is_regression": false,
+      "diagnosis": {
+        "category": "INCORRECT_IMPLEMENTATION",
+        "summary": "Logic error or unhandled edge cases in implementation.",
+        "root_cause": "Failed 1 test(s): test_negative_price_raises. test_hidden.py:39: in test_negative_price_raises\n    with pytest.raises((ValueError, TypeError)):\nE   Failed: DID NOT RAISE (<class 'ValueError'>, <class 'TypeError'>)",
+        "failing_tests": [
+          "test_negative_price_raises"
+        ],
+        "suggested_fix": "Check boundary values, mathematical logic, and input validation requirements.",
+        "is_regression": false,
+        "details": {
+          "failed_count": 1,
+          "is_edge_case": true
+        }
+      }
+    },
+    "tax": {
+      "baseline_score": 70.0,
+      "current_score": 70.0,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": "INCORRECT_IMPLEMENTATION",
+      "current_category": "INCORRECT_IMPLEMENTATION",
+      "is_regression": false,
+      "diagnosis": {
+        "category": "INCORRECT_IMPLEMENTATION",
+        "summary": "Incorrect implementation of requirements.",
+        "root_cause": "Failed 3 test(s): test_correct_percentage_math, test_float_income, test_100_percent_tax. test_hidden.py:12: in test_correct_percentage_math\n    assert result == 250.0, f\"Expected 250.0 (25% of 1000) but got {result}. Did you divide by 100?\"\nE   AssertionError: Expected 250.0 (25% of 1000)",
+        "failing_tests": [
+          "test_correct_percentage_math",
+          "test_float_income",
+          "test_100_percent_tax"
+        ],
+        "suggested_fix": "Check boundary values, mathematical logic, and input validation requirements.",
+        "is_regression": false,
+        "details": {
+          "failed_count": 3,
+          "is_edge_case": false
+        }
+      }
+    },
+    "api_endpoint": {
+      "baseline_score": 100.0,
+      "current_score": 100.0,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "sql_injection": {
+      "baseline_score": 93.3,
+      "current_score": 93.3,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": "SECURITY_VIOLATION",
+      "current_category": "SECURITY_VIOLATION",
+      "is_regression": false,
+      "diagnosis": {
+        "category": "SECURITY_VIOLATION",
+        "summary": "Security vulnerability not mitigated (SQL injection or unauthorized access).",
+        "root_cause": "Solution fails security tests: test_authorization_user_cannot_access_others. Direct string interpolation or missing permission checks detected.",
+        "failing_tests": [
+          "test_authorization_user_cannot_access_others"
+        ],
+        "suggested_fix": "Use parameterized database queries and verify caller authorization before returning records.",
+        "is_regression": false,
+        "details": {
+          "security_failing_tests": [
+            "test_authorization_user_cannot_access_others"
+          ]
+        }
+      }
+    },
+    "db_constraint": {
+      "baseline_score": 100.0,
+      "current_score": 100.0,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "orders": {
+      "baseline_score": 100.0,
+      "current_score": 100.0,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "rate_limiter": {
+      "baseline_score": 99.5,
+      "current_score": 99.5,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "jwt_auth": {
+      "baseline_score": 99.5,
+      "current_score": 99.5,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "cache_lru": {
+      "baseline_score": 99.5,
+      "current_score": 99.5,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    },
+    "data_pipeline": {
+      "baseline_score": 100.0,
+      "current_score": 100.0,
+      "score_delta": 0.0,
+      "baseline_status": "passed",
+      "current_status": "passed",
+      "baseline_category": null,
+      "current_category": null,
+      "is_regression": false,
+      "diagnosis": null
+    }
+  }
+}

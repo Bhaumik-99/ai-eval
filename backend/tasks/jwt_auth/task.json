@@ -1,0 +1,10 @@
+{
+  "id": "jwt_auth",
+  "name": "JWT Token Verification & Expiry",
+  "category": "SECURITY",
+  "difficulty": "medium",
+  "description": "Implement HMAC-SHA256 JWT encoding and decoding in `app.py`. The `create_token(payload, secret, expires_in_sec)` function must generate a standard JWT (`header.payload.signature` encoded in URL-safe base64 without padding). The `decode_token(token, secret)` function must verify the cryptographic signature and ensure the token has not expired (`exp` claim). If expired, tampered, or invalid, raise `ValueError`.",
+  "visible_hint": "A freshly created token should decode cleanly and return the original payload claims.",
+  "estimated_minutes": 10,
+  "tags": ["security", "jwt", "cryptography", "authentication"]
+}

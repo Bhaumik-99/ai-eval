@@ -1,0 +1,82 @@
+{
+  "benchmark_version": "1.0.0",
+  "baseline_name": "production-v1-golden",
+  "created_at": "2026-10-15T12:00:00Z",
+  "agent_model": "mock",
+  "prompt_version": "2.1.0",
+  "rubric_version": "1.0",
+  "average_score": 95.5,
+  "pass_rate_pct": 100.0,
+  "tasks": {
+    "discount": {
+      "score": 93.3,
+      "status": "passed",
+      "category": "INCORRECT_IMPLEMENTATION",
+      "passed_tests": 7,
+      "total_tests": 8
+    },
+    "tax": {
+      "score": 70.0,
+      "status": "passed",
+      "category": "INCORRECT_IMPLEMENTATION",
+      "passed_tests": 4,
+      "total_tests": 7
+    },
+    "api_endpoint": {
+      "score": 100.0,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 6,
+      "total_tests": 6
+    },
+    "sql_injection": {
+      "score": 93.3,
+      "status": "passed",
+      "category": "SECURITY_VIOLATION",
+      "passed_tests": 7,
+      "total_tests": 8
+    },
+    "db_constraint": {
+      "score": 100.0,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 5,
+      "total_tests": 5
+    },
+    "orders": {
+      "score": 100.0,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 7,
+      "total_tests": 7
+    },
+    "rate_limiter": {
+      "score": 99.5,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 5,
+      "total_tests": 5
+    },
+    "jwt_auth": {
+      "score": 99.5,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 5,
+      "total_tests": 5
+    },
+    "cache_lru": {
+      "score": 99.5,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 5,
+      "total_tests": 5
+    },
+    "data_pipeline": {
+      "score": 100.0,
+      "status": "passed",
+      "category": null,
+      "passed_tests": 5,
+      "total_tests": 5
+    }
+  }
+}

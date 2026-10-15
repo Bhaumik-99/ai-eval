@@ -15,6 +15,10 @@ TASK_IDS = [
     "sql_injection",
     "db_constraint",
     "orders",
+    "rate_limiter",
+    "jwt_auth",
+    "cache_lru",
+    "data_pipeline",
 ]
 
 _CACHE: Dict[str, Dict] = {}

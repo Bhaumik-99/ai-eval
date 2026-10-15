@@ -1,0 +1,40 @@
+# AgentEval — Disposable Sandbox Container
+# This image is used to execute untrusted candidate code in isolation.
+#
+# Security properties:
+#   - Non-root user (sandbox, uid=1000)
+#   - Hidden tests baked into /grader/ (not accessible from /sandbox/)
+#   - No network at runtime (--network=none)
+#   - CPU, memory, PID limits enforced by the host via docker run flags
+#   - /sandbox is the only writable directory for the candidate
+#
+FROM python:3.11-slim
+
+# Install only what's needed for test execution
+RUN pip install --no-cache-dir pytest==8.2.0 pytest-json-report==1.5.0 fastapi==0.111.0 httpx==0.27.0
+
+# Create non-root user
+RUN groupadd -g 1000 sandbox && \
+    useradd -u 1000 -g sandbox -m -s /bin/false sandbox
+
+# Create the grader directory (root-only: hidden from sandbox user)
+RUN mkdir -p /grader/hidden_tests && \
+    chown -R root:root /grader && \
+    chmod 700 /grader
+
+# Copy hidden tests into the image (root only, inaccessible from /sandbox)
+COPY hidden_tests/ /grader/hidden_tests/
+RUN chown -R root:root /grader/hidden_tests && \
+    chmod -R 700 /grader/hidden_tests
+
+# Copy the runner script
+COPY run_tests.py /grader/run_tests.py
+RUN chmod 700 /grader/run_tests.py
+
+# Create the sandbox workspace (writable by sandbox user)
+RUN mkdir -p /sandbox && chown -R sandbox:sandbox /sandbox
+
+WORKDIR /sandbox
+
+# Default entrypoint: the trusted runner (starts as root, prepares sandbox, drops to sandbox user for pytest)
+ENTRYPOINT ["python", "/grader/run_tests.py"]

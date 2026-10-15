@@ -1,0 +1,10 @@
+{
+  "id": "rate_limiter",
+  "name": "Token Bucket Rate Limiter",
+  "category": "CONCURRENCY",
+  "difficulty": "medium",
+  "description": "Implement a thread-safe token bucket rate limiter in `app.py`. The `TokenBucket(capacity, refill_rate)` class must replenish tokens over time based on `refill_rate` (tokens per second) up to `capacity`. The `consume(tokens=1)` method must return `True` and deduct tokens if enough tokens are available, or `False` if insufficient tokens exist. Ensure negative or zero capacity/refill_rate raises `ValueError`.",
+  "visible_hint": "Consuming 1 token from a full bucket of capacity 5 should succeed and leave 4 tokens.",
+  "estimated_minutes": 10,
+  "tags": ["concurrency", "rate-limiting", "token-bucket", "thread-safety"]
+}

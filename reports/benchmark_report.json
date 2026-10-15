@@ -1,0 +1,213 @@
+[
+  {
+    "model": "mock",
+    "execution_type": "[ILLUSTRATIVE_DEMO]",
+    "timestamp": "2026-10-15T17:55:06.309223+00:00",
+    "config": {
+      "prompt_version": "2.1.0",
+      "temperature": 0.2,
+      "max_retries": 2,
+      "runs_per_task": 2,
+      "total_evaluations": 20
+    },
+    "overall": {
+      "average_score": 95.5,
+      "pass_rate_pct": 100.0,
+      "pass_at_k_pct": 100.0
+    },
+    "latency": {
+      "mean_ms": 2425.9,
+      "p95_ms": 4671.0,
+      "min_ms": 2091.6,
+      "max_ms": 4671.0
+    },
+    "cost": {
+      "total_tokens": {
+        "prompt": 26600,
+        "completion": 5016,
+        "total": 31616
+      },
+      "total_cost_usd": 0.001826,
+      "avg_cost_per_task_usd": 0.000183
+    },
+    "recovery": {
+      "attempts": 2,
+      "successes": 0,
+      "recovery_rate_pct": 0.0
+    },
+    "per_category": {
+      "BUG_FIX": {
+        "avg_score": 81.7,
+        "pass_rate_pct": 100.0,
+        "sample_count": 4
+      },
+      "API": {
+        "avg_score": 100.0,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      },
+      "SECURITY": {
+        "avg_score": 96.4,
+        "pass_rate_pct": 100.0,
+        "sample_count": 4
+      },
+      "DATABASE": {
+        "avg_score": 100.0,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      },
+      "REGRESSION": {
+        "avg_score": 100.0,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      },
+      "CONCURRENCY": {
+        "avg_score": 99.5,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      },
+      "ALGORITHMS": {
+        "avg_score": 99.5,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      },
+      "DATA_ENGINEERING": {
+        "avg_score": 100.0,
+        "pass_rate_pct": 100.0,
+        "sample_count": 2
+      }
+    },
+    "tasks": {
+      "discount": {
+        "name": "Fix Discount Calculator",
+        "category": "BUG_FIX",
+        "score_stats": {
+          "mean": 93.3,
+          "std": 0.0,
+          "min": 93.3,
+          "max": 93.3
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "tax": {
+        "name": "Fix Tax Calculator",
+        "category": "BUG_FIX",
+        "score_stats": {
+          "mean": 70.0,
+          "std": 0.0,
+          "min": 70.0,
+          "max": 70.0
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "api_endpoint": {
+        "name": "Add GET /users/{id} Endpoint",
+        "category": "API",
+        "score_stats": {
+          "mean": 100.0,
+          "std": 0.0,
+          "min": 100.0,
+          "max": 100.0
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "sql_injection": {
+        "name": "Fix SQL Injection Vulnerability",
+        "category": "SECURITY",
+        "score_stats": {
+          "mean": 93.3,
+          "std": 0.0,
+          "min": 93.3,
+          "max": 93.3
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "db_constraint": {
+        "name": "Add Email Uniqueness Constraint",
+        "category": "DATABASE",
+        "score_stats": {
+          "mean": 100.0,
+          "std": 0.0,
+          "min": 100.0,
+          "max": 100.0
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "orders": {
+        "name": "Fix Order Total Calculation",
+        "category": "REGRESSION",
+        "score_stats": {
+          "mean": 100.0,
+          "std": 0.0,
+          "min": 100.0,
+          "max": 100.0
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "rate_limiter": {
+        "name": "Token Bucket Rate Limiter",
+        "category": "CONCURRENCY",
+        "score_stats": {
+          "mean": 99.5,
+          "std": 0.0,
+          "min": 99.5,
+          "max": 99.5
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "jwt_auth": {
+        "name": "JWT Token Verification & Expiry",
+        "category": "SECURITY",
+        "score_stats": {
+          "mean": 99.5,
+          "std": 0.0,
+          "min": 99.5,
+          "max": 99.5
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "cache_lru": {
+        "name": "LRU Cache with Eviction",
+        "category": "ALGORITHMS",
+        "score_stats": {
+          "mean": 99.5,
+          "std": 0.0,
+          "min": 99.5,
+          "max": 99.5
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      },
+      "data_pipeline": {
+        "name": "ETL Record Cleaner & Transformer",
+        "category": "DATA_ENGINEERING",
+        "score_stats": {
+          "mean": 100.0,
+          "std": 0.0,
+          "min": 100.0,
+          "max": 100.0
+        },
+        "pass_at_1": 100.0,
+        "pass_at_k": 100.0,
+        "runs": 2
+      }
+    }
+  }
+]

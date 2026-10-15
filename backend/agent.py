@@ -279,6 +279,149 @@ _MOCK_SOLUTIONS: Dict[str, str] = {
                 "total": round(total, 2),
             }
     """),
+
+    "rate_limiter": textwrap.dedent("""\
+        import threading
+        import time
+
+
+        class TokenBucket:
+            \"\"\"Thread-safe Token Bucket Rate Limiter with input validation.\"\"\"
+
+            def __init__(self, capacity: float, refill_rate: float):
+                if capacity <= 0:
+                    raise ValueError("Capacity must be positive")
+                if refill_rate <= 0:
+                    raise ValueError("Refill rate must be positive")
+                self.capacity = float(capacity)
+                self.refill_rate = float(refill_rate)
+                self.tokens = float(capacity)
+                self.last_refill = time.time()
+                self.lock = threading.Lock()
+
+            def _refill(self):
+                now = time.time()
+                elapsed = now - self.last_refill
+                self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_rate)
+                self.last_refill = now
+
+            def consume(self, tokens: int = 1) -> bool:
+                with self.lock:
+                    self._refill()
+                    if self.tokens >= tokens:
+                        self.tokens -= tokens
+                        return True
+                    return False
+    """),
+
+    "jwt_auth": textwrap.dedent("""\
+        import base64
+        import hashlib
+        import hmac
+        import json
+        import time
+        from typing import Dict
+
+
+        def _b64encode(data: bytes) -> str:
+            return base64.urlsafe_b64encode(data).decode("utf-8").rstrip("=")
+
+
+        def _b64decode(s: str) -> bytes:
+            padding = 4 - (len(s) % 4)
+            if padding != 4:
+                s += "=" * padding
+            return base64.urlsafe_b64decode(s)
+
+
+        def create_token(payload: Dict, secret: str, expires_in_sec: int = 3600) -> str:
+            header = {"alg": "HS256", "typ": "JWT"}
+            payload_copy = dict(payload)
+            payload_copy["exp"] = int(time.time()) + expires_in_sec
+
+            header_b64 = _b64encode(json.dumps(header).encode("utf-8"))
+            payload_b64 = _b64encode(json.dumps(payload_copy).encode("utf-8"))
+            msg = f"{header_b64}.{payload_b64}".encode("utf-8")
+
+            sig = hmac.new(secret.encode("utf-8"), msg, hashlib.sha256).digest()
+            sig_b64 = _b64encode(sig)
+            return f"{header_b64}.{payload_b64}.{sig_b64}"
+
+
+        def decode_token(token: str, secret: str) -> Dict:
+            parts = token.split(".")
+            if len(parts) != 3:
+                raise ValueError("Invalid token structure")
+
+            header_b64, payload_b64, sig_b64 = parts
+            msg = f"{header_b64}.{payload_b64}".encode("utf-8")
+            expected_sig = hmac.new(secret.encode("utf-8"), msg, hashlib.sha256).digest()
+            actual_sig = _b64decode(sig_b64)
+
+            if not hmac.compare_digest(expected_sig, actual_sig):
+                raise ValueError("Invalid signature")
+
+            payload = json.loads(_b64decode(payload_b64).decode("utf-8"))
+            if "exp" in payload and time.time() > payload["exp"]:
+                raise ValueError("Token has expired")
+            return payload
+    """),
+
+    "cache_lru": textwrap.dedent("""\
+        from collections import OrderedDict
+        from typing import Any, Optional
+
+
+        class LRUCache:
+            \"\"\"Least Recently Used Cache using OrderedDict.\"\"\"
+
+            def __init__(self, capacity: int):
+                if capacity <= 0:
+                    raise ValueError("Capacity must be positive")
+                self.capacity = capacity
+                self.cache = OrderedDict()
+
+            def get(self, key: Any) -> Optional[Any]:
+                if key not in self.cache:
+                    return None
+                self.cache.move_to_end(key)
+                return self.cache[key]
+
+            def put(self, key: Any, value: Any) -> None:
+                if key in self.cache:
+                    self.cache.move_to_end(key)
+                self.cache[key] = value
+                if len(self.cache) > self.capacity:
+                    self.cache.popitem(last=False)
+    """),
+
+    "data_pipeline": textwrap.dedent("""\
+        import re
+        from typing import Dict, List
+
+
+        def clean_records(records: List[Dict]) -> List[Dict]:
+            \"\"\"Deduplicate, clean dirty strings, and validate records.\"\"\"
+            by_id = {}
+            for r in records:
+                rec = dict(r)
+                email = str(rec.get("email", "")).strip()
+                if not ("@" in email and "." in email):
+                    continue
+
+                amount_raw = str(rec.get("amount", "0")).replace("$", "").replace(",", "").strip()
+                try:
+                    rec["amount"] = float(amount_raw)
+                except ValueError:
+                    continue
+
+                if "status" not in rec or not rec["status"]:
+                    rec["status"] = "active"
+
+                by_id[int(rec["id"])] = rec
+
+            return sorted(by_id.values(), key=lambda x: x["id"])
+    """),
 }
 
 

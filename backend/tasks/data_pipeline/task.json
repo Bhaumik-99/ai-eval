@@ -1,0 +1,10 @@
+{
+  "id": "data_pipeline",
+  "name": "ETL Record Cleaner & Transformer",
+  "category": "DATA_ENGINEERING",
+  "difficulty": "medium",
+  "description": "Implement a robust data transformation function `clean_records(records)` in `app.py`. Given a list of dirty dictionary records: (1) Deduplicate records keeping the latest entry per unique integer `id`; (2) Coerce string numerical amounts (e.g., '12.50', '$40') to positive floats; (3) Validate email format (must contain '@' and '.') dropping records with invalid emails; (4) Set default `status='active'` if missing; (5) Return cleaned records sorted by `id` ascending.",
+  "visible_hint": "Records with duplicate IDs should keep the most recently seen record in the list.",
+  "estimated_minutes": 10,
+  "tags": ["data-pipeline", "etl", "cleaning", "validation", "type-coercion"]
+}

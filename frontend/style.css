@@ -939,6 +939,56 @@ input, select, textarea { font-family: var(--font); }
 .trace-entry.action-hidden .trace-action    { color: #c084fc; }
 .trace-entry.action-scoring .trace-action   { color: #38bdf8; }
 
+.trace-chips {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.trace-chip {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+}
+
+.trace-chip.chip-cost { color: var(--yellow); }
+.trace-chip.chip-time { color: #38bdf8; }
+.trace-chip.chip-exit-ok { color: #4ade80; }
+.trace-chip.chip-exit-err { color: var(--red); border-color: rgba(208, 32, 32, 0.4); }
+
+.recovery-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: var(--muted);
+  border: 2px solid var(--fg);
+}
+
+.recovery-stat-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--fg);
+}
+
+.recovery-stat-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
 
 /* ---------------------------------------------------------
    18. FAILURE ANALYSIS BLOCK

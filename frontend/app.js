@@ -52,8 +52,22 @@ function categoryBadge(cat) {
     SECURITY:   ['badge-red',    'Security'],
     DATABASE:   ['badge-yellow', 'Database'],
     REGRESSION: ['badge-muted',  'Regression'],
+    SYSTEM:     ['badge-black',  'System'],
+    ALGORITHM:  ['badge-blue',   'Algorithm'],
   };
   const [cls, label] = map[cat] || ['badge-muted', cat];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function failureCategoryBadge(cat) {
+  const map = {
+    INCORRECT_IMPLEMENTATION: ['badge-yellow', 'Incorrect Implementation'],
+    TOOL_API_ERROR:           ['badge-red',    'Tool/API Error'],
+    ENVIRONMENT_FAILURE:      ['badge-black',  'Environment Failure'],
+    SECURITY_VIOLATION:       ['badge-red',    'Security Violation'],
+    REGRESSION:               ['badge-muted',  'Regression'],
+  };
+  const [cls, label] = map[cat] || ['badge-muted', cat || 'Unclassified'];
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
@@ -205,6 +219,8 @@ async function loadDashboard() {
     if (state.tasks.length === 0) {
       state.tasks = await apiFetch('/api/tasks');
     }
+    const statTasksEl = $('stat-tasks');
+    if (statTasksEl) statTasksEl.textContent = state.tasks.length;
     renderTaskOverview();
 
     // Load evaluations
@@ -441,7 +457,7 @@ function setupLiveView(evalId, model, taskIds) {
     const msg = JSON.parse(evt.data);
 
     if (msg.type === 'trace_step') {
-      appendTraceEntry(msg.task_id, msg.action, msg.detail);
+      appendTraceEntry(msg.task_id, msg.action, msg.detail, msg);
 
     } else if (msg.type === 'task_start') {
       updateLiveTask(msg.task_id, 'running', null);
@@ -510,7 +526,7 @@ function updateLiveTask(taskId, status, score) {
   }
 }
 
-function appendTraceEntry(taskId, action, detail) {
+function appendTraceEntry(taskId, action, detail, meta = {}) {
   const entries = $('live-trace-entries');
   if (!entries) return;
   const entry = el('div', 'trace-entry');
@@ -524,10 +540,32 @@ function appendTraceEntry(taskId, action, detail) {
 
   const shortTask = String(taskId).toUpperCase().slice(0, 10);
 
+  // Build metadata chips
+  const chips = [];
+  if (meta.duration_ms && meta.duration_ms > 0) {
+    const durStr = meta.duration_ms >= 1000 ? `${(meta.duration_ms / 1000).toFixed(2)}s` : `${Math.round(meta.duration_ms)}ms`;
+    chips.push(`<span class="trace-chip chip-time">⏱ ${durStr}</span>`);
+  }
+  if (meta.token_usage) {
+    const tokCount = typeof meta.token_usage === 'object' ? (meta.token_usage.total_tokens || meta.token_usage.output_tokens) : null;
+    if (tokCount) chips.push(`<span class="trace-chip">🔤 ${tokCount} tok</span>`);
+  }
+  if (meta.cost_usd && meta.cost_usd > 0) {
+    chips.push(`<span class="trace-chip chip-cost">$${meta.cost_usd.toFixed(4)}</span>`);
+  }
+  if (meta.tool_name) {
+    chips.push(`<span class="trace-chip">🔧 ${meta.tool_name}</span>`);
+  }
+  if (meta.exit_code !== undefined && meta.exit_code !== null) {
+    const cls = meta.exit_code === 0 ? 'chip-exit-ok' : 'chip-exit-err';
+    chips.push(`<span class="trace-chip ${cls}">exit ${meta.exit_code}</span>`);
+  }
+
   entry.innerHTML = `
     <div class="trace-task-badge">${shortTask}</div>
     <div class="trace-action">${action}</div>
     <div class="trace-detail">${detail || ''}</div>
+    ${chips.length ? `<div class="trace-chips">${chips.join('')}</div>` : ''}
   `;
   entries.appendChild(entry);
   // Auto-scroll the entries panel to the bottom
@@ -653,10 +691,31 @@ function renderDetail(ev) {
       else if (laction.includes('hidden')) entry.classList.add('action-hidden');
       else if (laction.includes('scor'))   entry.classList.add('action-scoring');
 
+      const chips = [];
+      if (t.duration_ms && t.duration_ms > 0) {
+        const durStr = t.duration_ms >= 1000 ? `${(t.duration_ms / 1000).toFixed(2)}s` : `${Math.round(t.duration_ms)}ms`;
+        chips.push(`<span class="trace-chip chip-time">⏱ ${durStr}</span>`);
+      }
+      if (t.token_usage) {
+        const tokCount = typeof t.token_usage === 'object' ? (t.token_usage.total_tokens || t.token_usage.output_tokens) : null;
+        if (tokCount) chips.push(`<span class="trace-chip">🔤 ${tokCount} tok</span>`);
+      }
+      if (t.estimated_cost && t.estimated_cost > 0) {
+        chips.push(`<span class="trace-chip chip-cost">$${Number(t.estimated_cost).toFixed(4)}</span>`);
+      }
+      if (t.tool_name) {
+        chips.push(`<span class="trace-chip">🔧 ${t.tool_name}</span>`);
+      }
+      if (t.exit_code !== undefined && t.exit_code !== null) {
+        const cls = t.exit_code === 0 ? 'chip-exit-ok' : 'chip-exit-err';
+        chips.push(`<span class="trace-chip ${cls}">exit ${t.exit_code}</span>`);
+      }
+
       entry.innerHTML = `
         <div class="trace-task-badge">${String(t.task_id).toUpperCase().slice(0,10)}</div>
         <div class="trace-action">${t.action}</div>
         <div class="trace-detail">${t.detail || ''}</div>
+        ${chips.length ? `<div class="trace-chips">${chips.join('')}</div>` : ''}
       `;
       traceLog.appendChild(entry);
     });
@@ -679,14 +738,18 @@ function renderTaskRunRow(run) {
   const summary = el('div', 'detail-task-summary');
   summary.innerHTML = `
     <div class="detail-task-toggle">▶</div>
-    <div>
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div style="flex:1;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <span style="font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:.04em;">${run.task_name}</span>
         ${categoryBadge(run.category)}
+        ${run.failure_category ? failureCategoryBadge(run.failure_category) : ''}
       </div>
-      <div style="font-size:11px; opacity:.5; font-weight:700; letter-spacing:.1em; margin-top:6px; text-transform:uppercase;">
-        ${passedTests.length} passed · ${failedTests.length} failed
-        ${run.failure_category ? ` · Category: ${run.failure_category}` : ''}
+      <div style="font-size:11px; opacity:.6; font-weight:700; letter-spacing:.08em; margin-top:6px; display:flex; gap:16px; flex-wrap:wrap; text-transform:uppercase;">
+        <span>${passedTests.length} passed · ${failedTests.length} failed</span>
+        <span>⏱ ${run.latency_ms ? Math.round(run.latency_ms) + 'ms' : '—'}</span>
+        <span>🔤 ${run.total_tokens || 0} tokens</span>
+        <span>💲 $${(run.estimated_cost || 0).toFixed(4)}</span>
+        ${run.retries_used ? `<span style="color:var(--yellow);">🔄 ${run.retries_used} retries</span>` : ''}
       </div>
     </div>
     <div style="font-size:42px; font-weight:900; color:${scoreColor(run.final_score || 0)};">${Math.round(run.final_score || 0)}%</div>
@@ -718,8 +781,35 @@ function buildExpandedContent(run) {
 
   const failedTests = (run.failure_details || []).filter(t => !t.passed);
   const passedTests = (run.failure_details || []).filter(t => t.passed);
+  const diag = run.diagnosis || {};
 
   return `
+    <!-- Telemetry & Recovery Banner -->
+    <div class="recovery-metrics-grid">
+      <div>
+        <div class="recovery-stat-val">${run.latency_ms ? Math.round(run.latency_ms) + 'ms' : '—'}</div>
+        <div class="recovery-stat-lbl">Execution Time</div>
+      </div>
+      <div>
+        <div class="recovery-stat-val">${run.total_tokens || 0}</div>
+        <div class="recovery-stat-lbl">Tokens Consumed</div>
+      </div>
+      <div>
+        <div class="recovery-stat-val">$${(run.estimated_cost || 0).toFixed(4)}</div>
+        <div class="recovery-stat-lbl">Est. Cost (USD)</div>
+      </div>
+      <div>
+        <div class="recovery-stat-val">${run.retries_used || 0}</div>
+        <div class="recovery-stat-lbl">Retries Used</div>
+      </div>
+      <div>
+        <div class="recovery-stat-val" style="color:${run.recovery_succeeded ? 'var(--blue)' : run.recovery_attempted ? 'var(--red)' : 'var(--fg)'}">
+          ${run.recovery_attempted ? (run.recovery_succeeded ? 'Recovered ✓' : 'Failed ✗') : 'None Needed'}
+        </div>
+        <div class="recovery-stat-lbl">Self-Recovery</div>
+      </div>
+    </div>
+
     <!-- Score breakdown -->
     <div style="display:grid; grid-template-columns:repeat(5,1fr); border:3px solid #121212; margin-bottom:24px;">
       ${scores.map((s, i) => `
@@ -730,6 +820,27 @@ function buildExpandedContent(run) {
         </div>
       `).join('')}
     </div>
+
+    <!-- Root Cause Diagnosis Banner (if diagnosis present) -->
+    ${diag.summary ? `
+      <div style="background:var(--white); border:3px solid #121212; padding:16px 20px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;">Root Cause Diagnosis</span>
+          ${failureCategoryBadge(diag.category || run.failure_category)}
+        </div>
+        <div style="font-size:14px; font-weight:700; color:var(--red); margin-bottom:6px;">
+          ${diag.summary}
+        </div>
+        <div style="font-size:12px; opacity:.85; font-family:'Courier New',monospace; margin-bottom:8px; line-height:1.4;">
+          ${diag.root_cause || ''}
+        </div>
+        ${diag.recovery_suggestion ? `
+          <div style="font-size:11px; background:var(--muted); padding:8px 12px; border-left:4px solid var(--blue); font-weight:500;">
+            <strong>Suggested Fix:</strong> ${diag.recovery_suggestion}
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
 
@@ -783,14 +894,17 @@ function buildExpandedContent(run) {
         ${run.traces && run.traces.length > 0 ? `
           <div style="margin-top:16px;">
             <div style="font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; opacity:.5; margin-bottom:12px;">
-              Agent Steps
+              Agent Steps (${run.traces.length})
             </div>
             <div style="background:var(--fg); border:3px solid #121212; padding:12px; max-height:200px; overflow-y:auto;">
               ${run.traces.map((t, i) => `
-                <div style="display:flex; gap:12px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06); align-items:baseline;">
-                  <span style="font-size:10px; color:rgba(255,255,255,.3); font-weight:700; min-width:20px;">${i + 1}.</span>
-                  <span style="font-size:11px; color:var(--yellow); font-weight:700;">${t.action}</span>
-                  <span style="font-size:11px; color:rgba(255,255,255,.5); font-family:'Courier New',monospace;">${t.detail || ''}</span>
+                <div style="display:flex; gap:12px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06); align-items:baseline; justify-content:space-between;">
+                  <div style="display:flex; gap:8px; align-items:baseline; overflow:hidden;">
+                    <span style="font-size:10px; color:rgba(255,255,255,.3); font-weight:700; min-width:20px;">${i + 1}.</span>
+                    <span style="font-size:11px; color:var(--yellow); font-weight:700; white-space:nowrap;">${t.action}</span>
+                    <span style="font-size:11px; color:rgba(255,255,255,.5); font-family:'Courier New',monospace; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${t.detail || ''}</span>
+                  </div>
+                  ${t.duration_ms ? `<span style="font-size:10px; color:#38bdf8; font-family:'Courier New',monospace;">${Math.round(t.duration_ms)}ms</span>` : ''}
                 </div>
               `).join('')}
             </div>

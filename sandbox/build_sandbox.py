@@ -50,10 +50,10 @@ def build_image(force: bool = False) -> bool:
         hidden_dest = os.path.join(build_ctx, "hidden_tests")
         shutil.copytree(hidden_src, hidden_dest, ignore=shutil.ignore_patterns("__pycache__"))
 
-        shutil.copy(
-            os.path.join(SANDBOX_DIR, "run_tests.py"),
-            os.path.join(build_ctx, "run_tests.py"),
-        )
+        for fname in ("run_tests.py", "candidate_worker.py", "bridge_app.py"):
+            src_f = os.path.join(SANDBOX_DIR, fname)
+            if os.path.exists(src_f):
+                shutil.copy(src_f, os.path.join(build_ctx, fname))
 
         result = subprocess.run(
             ["docker", "build", "-t", IMAGE_NAME, "-f", "Dockerfile", "."],
@@ -76,6 +76,7 @@ def verify_security() -> bool:
     
     Proves:
       1. Candidate cannot read hidden tests from /grader/
+      1b. Hidden tests are NEVER copied into /sandbox; candidate cannot tamper with test files
       2. Candidate cannot access host filesystem
       3. Candidate cannot make network requests
       4. Resource limits are enforced
@@ -84,7 +85,7 @@ def verify_security() -> bool:
     all_passed = True
 
     # Test 1: Candidate cannot read hidden tests
-    print("[verify] Test 1: Hidden test isolation...")
+    print("[verify] Test 1: Hidden test isolation (/grader)...")
     malicious_code_1 = '''
 import os, json
 results = {"files_found": []}
@@ -108,6 +109,36 @@ def calculate_tax(income, tax_rate):
     return income * tax_rate / 100
 '''
     passed = _run_malicious_test(malicious_code_1, "tax", "hidden_test_read")
+    if not passed:
+        all_passed = False
+
+    # Test 1b: Verify hidden tests never enter /sandbox and cannot be read or overwritten
+    print("[verify] Test 1b: Workspace isolation (no tests in /sandbox)...")
+    malicious_code_1b = '''
+import os, json
+files_in_sandbox = os.listdir("/sandbox")
+results = {
+    "files_in_sandbox": files_in_sandbox,
+    "has_hidden_test": any("test" in f for f in files_in_sandbox),
+    "tried_tamper": False,
+}
+# Try to tamper with /sandbox/test_hidden.py
+if os.path.exists("/sandbox/test_hidden.py"):
+    try:
+        os.chmod("/sandbox/test_hidden.py", 0o777)
+        with open("/sandbox/test_hidden.py", "w") as f:
+            f.write("def test_fake(): assert True")
+        results["tried_tamper"] = True
+    except Exception as e:
+        results["tamper_error"] = str(e)
+
+with open("/sandbox/sandbox_tamper_results.json", "w") as f:
+    json.dump(results, f)
+
+def calculate_tax(income, tax_rate):
+    return income * tax_rate / 100
+'''
+    passed = _run_malicious_test(malicious_code_1b, "tax", "sandbox_test_tamper")
     if not passed:
         all_passed = False
 
@@ -230,6 +261,15 @@ def _run_malicious_test(code: str, task_id: str, test_name: str) -> bool:
                 if not net.get("network_blocked", True):
                     print(f"  [{test_name}] [FAIL]: Network access not blocked!")
                     return False
+
+            tamper_path = os.path.join(tmpdir, "sandbox_tamper_results.json")
+            if os.path.exists(tamper_path):
+                with open(tamper_path) as f:
+                    tamper = json.load(f)
+                if tamper.get("has_hidden_test") or tamper.get("tried_tamper"):
+                    print(f"  [{test_name}] ❌ FAIL: Hidden test exposed in /sandbox! Files: {tamper.get('files_in_sandbox')}")
+                    return False
+                print(f"  [{test_name}] Verified: /sandbox files = {tamper.get('files_in_sandbox')} (no test files)")
 
             print(f"  [{test_name}] [PASS]")
             return True

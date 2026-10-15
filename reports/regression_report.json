@@ -1,5 +1,5 @@
 {
-  "evaluation_timestamp": "2026-10-15T18:19:37.344528",
+  "evaluation_timestamp": "2026-10-15T18:39:30.395185",
   "passed": true,
   "threshold": 5.0,
   "overall_score_delta": 0.0,
@@ -20,7 +20,7 @@
       "diagnosis": {
         "category": "INCORRECT_IMPLEMENTATION",
         "summary": "Logic error or unhandled edge cases in implementation.",
-        "root_cause": "Failed 1 test(s): test_negative_price_raises. test_hidden.py:39: in test_negative_price_raises\n    with pytest.raises((ValueError, TypeError)):\nE   Failed: DID NOT RAISE (<class 'ValueError'>, <class 'TypeError'>)",
+        "root_cause": "Failed 1 test(s): test_negative_price_raises. hidden_tests/test_discount_hidden.py:39: in test_negative_price_raises\n    with pytest.raises((ValueError, TypeError)):\nE   Failed: DID NOT RAISE (<class 'ValueError'>, <class 'TypeError'>)",
         "failing_tests": [
           "test_negative_price_raises"
         ],
@@ -44,7 +44,7 @@
       "diagnosis": {
         "category": "INCORRECT_IMPLEMENTATION",
         "summary": "Incorrect implementation of requirements.",
-        "root_cause": "Failed 3 test(s): test_correct_percentage_math, test_float_income, test_100_percent_tax. test_hidden.py:12: in test_correct_percentage_math\n    assert result == 250.0, f\"Expected 250.0 (25% of 1000) but got {result}. Did you divide by 100?\"\nE   AssertionError: Expected 250.0 (25% of 1000)",
+        "root_cause": "Failed 3 test(s): test_correct_percentage_math, test_float_income, test_100_percent_tax. hidden_tests/test_tax_hidden.py:12: in test_correct_percentage_math\n    assert result == 250.0, f\"Expected 250.0 (25% of 1000) but got {result}. Did you divide by 100?\"\nE   AssertionError: Expected 25",
         "failing_tests": [
           "test_correct_percentage_math",
           "test_float_income",

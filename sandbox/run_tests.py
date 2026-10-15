@@ -1,33 +1,30 @@
 #!/usr/bin/env python3
 """
-Trusted test runner — runs inside the sandbox container.
+Trusted test runner — runs inside the sandbox container as root.
 
-This script runs as root (PID 1 inside the container). It:
-1. Reads the candidate code from /sandbox/app.py (volume-mounted by host).
-2. Copies the requested hidden test into /sandbox/test_hidden.py.
-3. Drops privileges to the `sandbox` user (uid 1000).
-4. Executes pytest with JSON report output.
-5. Writes structured results to /sandbox/results.json.
-
-The candidate code can only see /sandbox. The hidden test is copied at
-runtime so its original location (/grader/hidden_tests/) stays unreadable.
+Security guarantees:
+1. Hidden tests stay strictly in /grader/hidden_tests/ (root-only, mode 0700).
+2. Hidden tests are NEVER copied into /sandbox or made accessible to candidate code.
+3. Candidate code runs strictly in a worker process as UID 1000 in /sandbox.
+4. Grader and candidate are completely isolated in separate security boundaries.
+5. The grader interacts with candidate execution only through a controlled interface:
+   - JSON-RPC over Unix domain socket /tmp/candidate_rpc.sock.
+   - ASGI HTTP over /tmp/candidate_fastapi.sock for endpoint tests.
+   - Database schemas bridged via shared 0666 SQLite temp files.
+6. Writes structured test results to /sandbox/results.json.
 """
+import glob
 import json
 import os
-import pwd
+import shutil
+import socket
 import subprocess
 import sys
-import shutil
-
-
-def drop_privileges(uid: int = 1000, gid: int = 1000):
-    """Drop from root to sandbox user."""
-    os.setgid(gid)
-    os.setuid(uid)
+import time
 
 
 def main():
-    task_id = os.environ.get("TASK_ID", "")
+    task_id = os.environ.get("TASK_ID", "").strip()
     if not task_id:
         _fail("TASK_ID environment variable not set")
 
@@ -39,62 +36,92 @@ def main():
     if not os.path.exists(candidate_code):
         _fail("Candidate code not found at /sandbox/app.py")
 
-    # Copy hidden test into sandbox workspace (so pytest can find it)
-    test_dest = "/sandbox/test_hidden.py"
-    shutil.copy(hidden_test_src, test_dest)
-    os.chmod(test_dest, 0o444)  # read-only
-
-    # Ensure files are owned by sandbox user and have appropriate permissions
-    try:
-        os.chown(candidate_code, 1000, 1000)
-        os.chown(test_dest, 1000, 1000)
-    except (PermissionError, OSError):
-        pass
-    try:
-        os.chmod(candidate_code, 0o644)
-        os.chmod(test_dest, 0o444)
-    except (PermissionError, OSError):
-        pass
-
-    # Remove any symlinks or tricks in /sandbox
+    # Clean sandbox workspace: ensure only app.py exists
+    # NEVER copy hidden tests into /sandbox!
     for name in os.listdir("/sandbox"):
         path = os.path.join("/sandbox", name)
-        if os.path.islink(path) and name not in ("app.py", "test_hidden.py", "results.json"):
-            os.unlink(path)
+        if name not in ("app.py", "results.json"):
+            if os.path.islink(path) or os.path.isfile(path):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+            elif os.path.isdir(path):
+                shutil.rmtree(path, ignore_errors=True)
 
-    report_path = "/sandbox/report.json"
+    # Ensure candidate code is owned by sandbox user (UID 1000)
+    try:
+        os.chown(candidate_code, 1000, 1000)
+        os.chmod(candidate_code, 0o644)
+    except (PermissionError, OSError):
+        pass
 
-    # Run pytest inside the sandbox workspace as user 1000
-    run_kwargs = {}
-    if os.getuid() == 0:
-        run_kwargs["user"] = 1000
-        run_kwargs["group"] = 1000
+    # Launch candidate worker process as UID 1000 in /sandbox
+    worker_cmd = [sys.executable, "/opt/agenteval/candidate_worker.py", task_id]
+    worker_proc = subprocess.Popen(
+        worker_cmd,
+        cwd="/sandbox",
+        user=1000,
+        group=1000,
+        env={
+            "HOME": "/tmp",
+            "PYTHONPATH": "/sandbox",
+            "PATH": "/usr/local/bin:/usr/bin:/bin",
+        },
+    )
+
+    # Wait for candidate worker RPC socket to be ready
+    rpc_socket = "/tmp/candidate_rpc.sock"
+    sock_ready = False
+    for _ in range(100):  # Wait up to 10s
+        if os.path.exists(rpc_socket):
+            try:
+                s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                s.connect(rpc_socket)
+                s.close()
+                sock_ready = True
+                break
+            except (ConnectionRefusedError, OSError):
+                pass
+        if worker_proc.poll() is not None:
+            break
+        time.sleep(0.1)
+
+    if not sock_ready:
+        worker_proc.kill()
+        _fail("Candidate worker process failed to initialize RPC socket")
+
+    # Run pytest inside /grader with PYTHONPATH pointing to /grader/bridge
+    # Pytest runs trusted hidden tests from /grader/hidden_tests/
+    report_path = "/tmp/report.json"
+    if os.path.exists(report_path):
+        os.unlink(report_path)
 
     try:
         result = subprocess.run(
             [
                 sys.executable, "-m", "pytest",
-                "test_hidden.py",
+                hidden_test_src,
                 "--json-report",
                 f"--json-report-file={report_path}",
                 "--tb=short",
                 "-q",
             ],
-            cwd="/sandbox",
+            cwd="/grader",
             capture_output=True,
             text=True,
-            timeout=120,  # overall process timeout
+            timeout=120,
             env={
                 "HOME": "/tmp",
-                "PYTHONPATH": "/sandbox",
+                "PYTHONPATH": "/grader/bridge",
                 "PATH": "/usr/local/bin:/usr/bin:/bin",
-                # Strip all other env vars — no secrets leak
             },
-            **run_kwargs,
         )
         stdout = result.stdout + result.stderr
         returncode = result.returncode
     except subprocess.TimeoutExpired:
+        _stop_worker(worker_proc)
+        _cleanup_tmp()
         _write_results({
             "success": False,
             "error": "Execution timed out (120s limit)",
@@ -103,7 +130,14 @@ def main():
         })
         return
     except Exception as exc:
+        _stop_worker(worker_proc)
+        _cleanup_tmp()
         _fail(f"Failed to run pytest: {exc}")
+        return
+
+    # Stop candidate worker
+    _stop_worker(worker_proc)
+    _cleanup_tmp()
 
     # Parse JSON report
     tests = []
@@ -136,6 +170,25 @@ def main():
     })
 
 
+def _stop_worker(proc: subprocess.Popen):
+    try:
+        proc.terminate()
+        proc.wait(timeout=3)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
+def _cleanup_tmp():
+    for f in glob.glob("/tmp/*.sock") + glob.glob("/tmp/*.db"):
+        try:
+            os.unlink(f)
+        except OSError:
+            pass
+
+
 def _fail(msg: str):
     _write_results({"success": False, "error": msg, "tests": [], "raw_output": ""})
     sys.exit(1)
@@ -144,6 +197,10 @@ def _fail(msg: str):
 def _write_results(data: dict):
     with open("/sandbox/results.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
+    try:
+        os.chmod("/sandbox/results.json", 0o644)
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

@@ -1,24 +1,33 @@
 # AgentEval — Disposable Sandbox Container
-# This image is used to execute untrusted candidate code in isolation.
+# Untrusted candidate code executes in a separate security boundary from the trusted grader.
 #
 # Security properties:
-#   - Non-root user (sandbox, uid=1000)
-#   - Hidden tests baked into /grader/ (not accessible from /sandbox/)
+#   - Non-root sandbox user (uid=1000, gid=1000)
+#   - Grader directory /grader/ is strictly root-only (chmod 700, owned by root:root)
+#   - Hidden tests reside exclusively in /grader/hidden_tests/ (inaccessible to candidate)
+#   - Candidate code executes exclusively in a worker process as UID 1000 in /sandbox
+#   - Controlled interface: JSON-RPC and ASGI sockets in /tmp bridge test execution
 #   - No network at runtime (--network=none)
 #   - CPU, memory, PID limits enforced by the host via docker run flags
-#   - /sandbox is the only writable directory for the candidate
 #
 FROM python:3.11-slim
 
-# Install only what's needed for test execution
-RUN pip install --no-cache-dir pytest==8.2.0 pytest-json-report==1.5.0 fastapi==0.111.0 httpx==0.27.0
+# Install test and server dependencies
+RUN pip install --no-cache-dir pytest==8.2.0 pytest-json-report==1.5.0 fastapi==0.111.0 httpx==0.27.0 uvicorn==0.30.0
 
-# Create non-root user
+# Create non-root sandbox user
 RUN groupadd -g 1000 sandbox && \
     useradd -u 1000 -g sandbox -m -s /bin/false sandbox
 
-# Create the grader directory (root-only: hidden from sandbox user)
-RUN mkdir -p /grader/hidden_tests && \
+# Setup /opt/agenteval/ for candidate worker (mode 755, owned by root:root)
+RUN mkdir -p /opt/agenteval
+COPY candidate_worker.py /opt/agenteval/candidate_worker.py
+RUN chown -R root:root /opt/agenteval && \
+    chmod 755 /opt/agenteval && \
+    chmod 755 /opt/agenteval/candidate_worker.py
+
+# Create the grader directory (root-only: completely hidden from sandbox user)
+RUN mkdir -p /grader/hidden_tests /grader/bridge && \
     chown -R root:root /grader && \
     chmod 700 /grader
 
@@ -27,14 +36,19 @@ COPY hidden_tests/ /grader/hidden_tests/
 RUN chown -R root:root /grader/hidden_tests && \
     chmod -R 700 /grader/hidden_tests
 
-# Copy the runner script
+# Copy the bridge application (controlled interface for pytest)
+COPY bridge_app.py /grader/bridge/app.py
+RUN chown -R root:root /grader/bridge && \
+    chmod -R 700 /grader/bridge
+
+# Copy the trusted runner script
 COPY run_tests.py /grader/run_tests.py
 RUN chmod 700 /grader/run_tests.py
 
-# Create the sandbox workspace (writable by sandbox user)
+# Create the sandbox workspace (owned by sandbox user)
 RUN mkdir -p /sandbox && chown -R sandbox:sandbox /sandbox
 
 WORKDIR /sandbox
 
-# Default entrypoint: the trusted runner (starts as root, prepares sandbox, drops to sandbox user for pytest)
+# Default entrypoint: the trusted runner
 ENTRYPOINT ["python", "/grader/run_tests.py"]

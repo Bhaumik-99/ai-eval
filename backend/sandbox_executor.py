@@ -94,11 +94,11 @@ def ensure_sandbox_image(force_rebuild: bool = False) -> bool:
         hidden_dest = os.path.join(build_context, "hidden_tests")
         shutil.copytree(hidden_src, hidden_dest, ignore=shutil.ignore_patterns("__pycache__"))
 
-        # Copy runner script
-        shutil.copy(
-            os.path.join(SANDBOX_DIR, "run_tests.py"),
-            os.path.join(build_context, "run_tests.py"),
-        )
+        # Copy runner script and bridge files
+        for fname in ("run_tests.py", "candidate_worker.py", "bridge_app.py"):
+            src_f = os.path.join(SANDBOX_DIR, fname)
+            if os.path.exists(src_f):
+                shutil.copy(src_f, os.path.join(build_context, fname))
 
         result = subprocess.run(
             [DOCKER_BINARY, "build", "-t", SANDBOX_IMAGE, "-f", "Dockerfile", "."],

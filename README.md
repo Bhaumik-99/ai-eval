@@ -176,38 +176,55 @@ Untrusted agent code is never executed directly on the host machine. Every evalu
 ```mermaid
 graph TD
     subgraph Host["Host Operating System (Trusted)"]
-        H1["Hidden Test Store<br/>(graders/hidden_tests/)"]
+        H1["Hidden Test Source<br/>(graders/hidden_tests/)"]
         H2["Task Runner Orchestrator<br/>(backend/sandbox_executor.py)"]
         H3["Temp Dir Mount<br/>(app.py + results.json)"]
     end
 
-    subgraph Container["Disposable Docker Container (Untrusted Execution)"]
-        C1["Non-Root User<br/>(uid 1000: sandbox)"]
-        C2["Network Policy<br/>(--network=none)"]
-        C3["Filesystem Security<br/>(--read-only, --tmpfs /tmp)"]
-        C4["Resource Limits<br/>(1.0 CPU, 256MB RAM, 64 PIDs)"]
-        C5["Baked Hidden Tests<br/>(/grader/hidden_tests/ - root 444)"]
-        C6["Execution Directory<br/>(/sandbox/app.py)"]
+    subgraph Container["Disposable Docker Container (Separate Security Boundaries)"]
+        subgraph GraderBoundary["Trusted Grader Boundary (root:root, chmod 700)"]
+            G1["Baked Hidden Tests<br/>(/grader/hidden_tests/*.py)"]
+            G2["Pytest Test Runner<br/>(run_tests.py)"]
+            G3["Trusted Bridge Client<br/>(/grader/bridge/app.py)"]
+            G1 --> G2
+            G2 <--> G3
+        end
+
+        subgraph ControlledInterface["Controlled Inter-Process Interface (/tmp)"]
+            IPC1["JSON-RPC Socket<br/>(/tmp/candidate_rpc.sock)"]
+            IPC2["ASGI HTTP Socket<br/>(/tmp/candidate_fastapi.sock)"]
+            IPC3["Shared SQLite DBs<br/>(/tmp/sqlite_shared_*.db)"]
+        end
+
+        subgraph CandidateBoundary["Candidate Boundary (sandbox user: uid 1000, /sandbox)"]
+            W1["Worker Process (/opt/agenteval/candidate_worker.py)"]
+            W2["Untrusted Candidate Code (/sandbox/app.py)"]
+            W1 --> W2
+        end
     end
 
-    H1 -->|"Baked into image at build time"| C5
+    H1 -->|"Baked into image at build time"| G1
     H2 -->|"Mounts temporary workspace"| H3
-    H3 <-->|"Bind mount: /sandbox:rw"| C6
-    C1 --- C2
-    C2 --- C3
-    C3 --- C4
-    C5 -->|"Trusted runner copies single test"| C6
-    C6 -->|"Writes execution report"| H3
+    H3 <-->|"Bind mount: /sandbox:rw"| W2
+    G3 <-->|"Function & Class Calls"| IPC1
+    G3 <-->|"FastAPI HTTP Requests"| IPC2
+    G3 <-->|"DB State Verification"| IPC3
+    IPC1 <-->|"RPC Dispatch"| W1
+    IPC2 <-->|"Uvicorn ASGI Server"| W1
+    IPC3 <-->|"Candidate DB Writes"| W1
+    G2 -->|"Writes results.json after test run"| H3
     H2 -->|"Host process validates structure"| H2
 ```
 
 ### Security Enforcement Details
 
-- **Non-Root Execution**: Runs strictly as `USER sandbox` (uid 1000). All capability escalation blocked (`--security-opt no-new-privileges`, `--cap-drop ALL`).
+- **Strict Security Boundary Separation**: The trusted grader runs inside `/grader` (owned by `root:root`, `chmod 700`), while untrusted candidate code runs exclusively in an isolated worker process as `USER sandbox` (`uid 1000`, `gid 1000`) inside `/sandbox`.
+- **Zero Test Exposure**: Hidden tests are **NEVER** copied into `/sandbox` or any directory accessible by the candidate. Candidate code cannot read, list, chmod, or tamper with hidden test files.
+- **Controlled Interface**: Grader tests interact with candidate code via a controlled interface (JSON-RPC over `/tmp/candidate_rpc.sock`, ASGI over `/tmp/candidate_fastapi.sock`, and shared `/tmp` SQLite instances). Untrusted code never executes in the grader's process.
+- **Non-Root Execution**: Candidate worker runs strictly as UID 1000. All capability escalation is blocked (`--security-opt no-new-privileges`, `--cap-drop ALL`, only retaining `SETUID`/`SETGID` for privilege dropping).
 - **Complete Network Isolation**: `--network=none` prevents data exfiltration, phone-home beacons, or external downloads.
 - **Read-Only Root Filesystem**: `--read-only` root ensures candidate code cannot alter system binaries or python libraries.
 - **Strict Resource Caps**: `--cpus 1.0`, `--memory 256m`, and `--pids-limit 64` protect against CPU hogging, memory leaks, and fork bombs.
-- **Hidden Test Isolation**: Hidden tests are stored in `/grader/hidden_tests/` (chmod 444/555) outside the candidate workspace. The trusted runner brings in only the test needed for the active task.
 
 ---
 

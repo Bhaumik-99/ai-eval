@@ -1,0 +1,20 @@
+{
+  "fixture_type":"redacted_report-derived_summary_not_raw_trace",
+  "source_artifact":"Thommidhi_AI_Integration_Evaluation.pdf (found in Library; 3 pages)",
+  "task":"Task 1: existing brand deal and linked video plan reconciliation",
+  "case_id":"TASK1_REAL_REPORT",
+  "observations":[
+    {"operation":"retrieve existing deal and plan","reported_tool":"mcp__thommidhi__list_my_deals","raw_tool_call_available":false,"arguments_available":false},
+    {"operation":"reconcile structured usage field","reported_tool":"mcp__thommidhi__update_deal","reported_result":"Report says usage changed to brand_organic without intentionally changing stage","raw_tool_call_available":false,"arguments_available":false},
+    {"operation":"read-after-write verification","reported_tool":"mcp__thommidhi__list_my_deals","reported_result":"Report says read-back confirmed corrected usage and existing linked plan","raw_tool_call_available":false,"arguments_available":false}
+  ],
+  "report_findings":[
+    "No new deal or plan was reportedly created during reconciliation.",
+    "Deliverables were only partially represented structurally; extra social deliverables remained in notes.",
+    "Contract signature was not independently verified.",
+    "Exact per-call latency and timestamps were not captured."
+  ],
+  "state_evidence":{"persisted_state_verified":false,"basis":"Source report describes read-back but does not supply raw before/after payloads; not independently machine-verifiable here."},
+  "limitation":"Report-derived summary, not a raw tool-call transcript; exact arguments cannot be reconstructed.",
+  "transcript_access_status":"raw Task 1 transcript not found in available records"
+}

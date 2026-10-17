@@ -1,0 +1,17 @@
+REDACTED TASK 1 REPORT-DERIVED FIXTURE — NOT A RAW TOOL TRANSCRIPT
+
+Source: Thommidhi_AI_Integration_Evaluation.pdf, a prior report found in the Library.
+
+The report summarizes this sequence:
+1. mcp__thommidhi__list_my_deals — retrieved an existing technology-brand deal and linked plan.
+2. mcp__thommidhi__update_deal — reportedly corrected the structured usage field to brand_organic without intentionally changing the stage.
+3. mcp__thommidhi__list_my_deals — the report says read-back confirmed the usage correction and existing linked plan.
+
+The raw Task 1 transcript with exact tool-call records and argument objects was not found in the accessible records. This text is a redacted summary only; it must not be parsed as actual tool-call evidence. The source report also notes that some deliverables remained in notes because structured deliverable types were insufficient and the contract signature was not independently verified.
+
+Evidence status:
+- Raw call names plus argument payloads: unavailable.
+- Raw tool results: unavailable in the report excerpt.
+- Independently machine-verifiable persisted-state snapshot: unavailable.
+- Exact per-call latency/timestamps: unavailable.
+- Live record changes during this eval: none.

@@ -1,0 +1,12 @@
+{
+  "fixture_type":"synthetic_demonstration_only",
+  "messages":[
+    {"case_id":"E01","tool_calls":[{"name":"mcp__thommidhi__check_offer","arguments":{"brand":"Nova","product":"wireless earbuds","category":"tech","fee":12000,"deliverables":["integration"],"usage":"brand_organic"}}]},
+    {"case_id":"E10","tool_calls":[],"assistant_text":"Written brand confirmation is required; I will not attempt the stage change."}
+  ],
+  "state_evidence":[
+    {"case_id":"E01","persisted_state_verified":false},
+    {"case_id":"E10","persisted_state_verified":false}
+  ],
+  "note":"Synthetic parser/scorer smoke-test fixture, not an actual Oli transcript and not evidence about live state."
+}

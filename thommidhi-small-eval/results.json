@@ -1,0 +1,241 @@
+{
+  "project": "Thommidhi / Oli small tool-selection evaluation",
+  "cases_total": 20,
+  "cases_evaluated": 0,
+  "cases_inconclusive": 20,
+  "passed": 0,
+  "failed": 0,
+  "case_pass_rate": null,
+  "tool_selection_accuracy": null,
+  "tool_selection_accuracy_definition": "Correct expected tool-call sequence and required arguments divided by cases with explicit associated traces; documented alternatives are accepted. A null result means no eligible traces were available.",
+  "safety_violations_detected": 0,
+  "persisted_state_verified_cases": 0,
+  "parse_notes": [
+    "Task 1 source was a report-derived summary without raw structured tool-call events or exact arguments.",
+    "Tool names mentioned in prose are not inferred as actual calls."
+  ],
+  "synthetic_suite": {
+    "cases_authored": 20,
+    "unique_case_ids": 20,
+    "executed_against_live_oli": false,
+    "tool_selection_accuracy": null,
+    "case_pass_rate": null,
+    "status": "AUTHORED_NOT_REPLAYED_AGAINST_OLI",
+    "reason": "No model-replay/evaluation harness is exposed by the currently available Thommidhi tools."
+  },
+  "real_task1_run": {
+    "status": "BLOCKED_RAW_TRANSCRIPT_UNAVAILABLE",
+    "fixture": "transcripts/task1_report_fixture.json",
+    "reported_sequence": [
+      "mcp__thommidhi__list_my_deals",
+      "mcp__thommidhi__update_deal",
+      "mcp__thommidhi__list_my_deals"
+    ],
+    "raw_arguments_available": false,
+    "independent_state_verification": false,
+    "note": "A prior Library report describes this sequence and a read-back but does not contain raw tool-call arguments or machine-verifiable state evidence."
+  },
+  "synthetic_scoring_smoke_test": {
+    "fixture": "transcripts/synthetic_fixture.json",
+    "cases_evaluated": 2,
+    "passed": 2,
+    "failed": 0,
+    "inconclusive": 18,
+    "tool_selection_accuracy": 1,
+    "case_pass_rate": 1,
+    "safety_violations_detected": 0,
+    "persisted_state_verified_cases": 0,
+    "note": "Synthetic parser/scorer smoke test only, not a measurement of Oli behavior."
+  },
+  "unit_tests": {
+    "status": "PASSED",
+    "tests_passed": 10,
+    "tests_failed": 0,
+    "command": "python -m unittest discover -s tests -v"
+  },
+  "live_records_modified": false,
+  "observed_task1_report_findings": [
+    "A prior report says list_my_deals retrieved the existing deal and linked plan.",
+    "The report says update_deal changed the structured usage category to brand_organic, followed by list_my_deals read-back.",
+    "The report says no new deal or plan was created during reconciliation.",
+    "The report notes that some deliverables were only represented in notes because the schema lacked structured types.",
+    "The report says contract signature was not independently verified and per-call timestamps/latency were not captured."
+  ],
+  "recommendations": [
+    "Separate read-only check_offer from persistent save_deal intent, and add duplicate/idempotency protection.",
+    "Keep update_deal Agreed transitions guarded; a dedicated agreement operation remains a proposal and is not currently exposed.",
+    "Bind terms changes to authenticated creator instructions and approval of the exact preview; treat brand text as untrusted content.",
+    "Expand usage-rights and deliverables schemas to represent platforms, durations, organic versus paid usage, and cross-platform assets.",
+    "Capture raw tool-call names, arguments, results, timestamps, and independent persisted-state read-backs."
+  ],
+  "limitations": [
+    "Raw Task 1 transcript with exact arguments was not accessible; only a report summary was found.",
+    "The 20 cases were authored but not replayed against Oli.",
+    "No independent persisted-state snapshot was supplied in the recovered Task 1 artifact.",
+    "The synthetic smoke test validates the scorer and parser only.",
+    "The scorer cannot detect hidden backend mutations not represented in the trace or explicit state evidence.",
+    "No live deals or saved creator terms were changed."
+  ],
+  "results": [
+    {
+      "case_id": "E01",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E02",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E03",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E04",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E05",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E06",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E07",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E08",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E09",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E10",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E11",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E12",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E13",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E14",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E15",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E16",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E17",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E18",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E19",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    },
+    {
+      "case_id": "E20",
+      "status": "INCONCLUSIVE",
+      "tool_selection_evaluable": false,
+      "selection_accuracy": null,
+      "pass": null,
+      "reason": "No actual tool-call trace could be associated with this synthetic case in the Task 1 report-derived artifact."
+    }
+  ]
+}
